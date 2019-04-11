@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+sentry_sdk.init(
+    dsn="https://94578db82e654fada20e1a2bfe34b186@sentry.io/1428808",
+    integrations=[DjangoIntegration()]
+)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -32,6 +40,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
+    'django_jenkins',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +60,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'devops_django.urls'
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.run_pyflakes',
+    'django_jenkins.tasks.run_sloccount'
+)
 
 TEMPLATES = [
     {
@@ -81,6 +96,22 @@ DATABASES = {
     }
 }
 
+if os.environ.get('DJANGO_DEPLOY_SETTINGS') == 'stage':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'HOST': 'localhost',
+            'NAME': 'tutorial',
+            'USER': 'tutorial',
+            'PASSWORD': 'Tutorial01',
+        }
+    }
+    PROJECT_ROOT='/srv/'
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+
+    
+    
+    
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
